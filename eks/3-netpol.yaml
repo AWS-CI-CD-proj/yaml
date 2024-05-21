@@ -1,0 +1,210 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all-database
+  namespace: database-ns
+spec:
+  podSelector:
+    matchLabels: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-from-backend
+  namespace: database-ns
+spec:
+  podSelector:
+    matchLabels: {}
+  ingress:
+    - from:
+      - podSelector:
+          matchLabels: {}
+        namespaceSelector:
+          matchLabels:
+            tier: backend
+    - from:
+      - podSelector:
+          matchLabels: {}
+        namespaceSelector:
+          matchLabels:
+            tier: monitoring-ns
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all-backend
+  namespace: backend-ns
+spec:
+  podSelector:
+    matchLabels: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-from-ingress-monitor
+  namespace: backend-ns
+spec:
+  podSelector:
+    matchLabels: {}
+  ingress:
+    - from:
+      - podSelector:
+          matchLabels: {}
+        namespaceSelector:
+          matchLabels:
+            tier: ingress-nginx
+    - from:
+      - podSelector:
+          matchLabels: {}
+        namespaceSelector:
+          matchLabels:
+            tier: monitoring-ns
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-to-database
+  namespace: backend-ns
+spec:
+  podSelector:
+    matchLabels: {}
+  egress:
+    - to:
+      - podSelector:
+          matchLabels: {}
+        namespaceSelector:
+          matchLabels:
+            tier: database
+    - to:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: kube-system
+        podSelector:
+          matchLabels:
+            k8s-app: kube-dns
+      ports:
+      - protocol: UDP
+        port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all-frontend
+  namespace: frontend-ns
+spec:
+  podSelector:
+    matchLabels: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-from-ingress-monitor
+  namespace: frontend-ns
+spec:
+  podSelector:
+    matchLabels: {}
+  ingress:
+    - from:
+      - podSelector:
+          matchLabels: {}
+        namespaceSelector:
+          matchLabels:
+            tier: ingress-nginx
+    - from:
+      - podSelector:
+          matchLabels: {}
+        namespaceSelector:
+          matchLabels:
+            tier: monitoring-ns
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-to-ingress
+  namespace: frontend-ns
+spec:
+  podSelector:
+    matchLabels: {}
+  egress:
+    - to:
+      - podSelector:
+          matchLabels: {}
+        namespaceSelector:
+          matchLabels:
+            tier: ingress-nginx
+    - to:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: kube-system
+        podSelector:
+          matchLabels:
+            k8s-app: kube-dns
+      ports:
+      - protocol: UDP
+        port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all-ingress
+  namespace: ingress-nginx
+spec:
+  podSelector:
+    matchLabels: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-all
+  namespace: ingress-nginx
+spec:
+  podSelector:
+    matchLabels: {}
+  ingress:
+    - from:
+      - ipBlock:
+          cidr: 0.0.0.0/0
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-front-back
+  namespace: ingress-nginx
+spec:
+  podSelector:
+    matchLabels: {}
+  egress:
+    - to:
+      - podSelector:
+          matchLabels: {}
+        namespaceSelector:
+          matchLabels:
+            tier: frontend
+    - to:
+      - podSelector:
+          matchLabels: {}
+        namespaceSelector:
+          matchLabels:
+            tier: backend
+    - to:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: kube-system
+        podSelector:
+          matchLabels:
+            k8s-app: kube-dns
+      ports:
+      - protocol: UDP
+        port: 53

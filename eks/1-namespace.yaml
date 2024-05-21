@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: frontend-ns
+spec: {}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: backend-ns
+spec: {}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: database-ns
+spec: {}
